@@ -1,18 +1,19 @@
 {
-  "id": "dev.replugged.PluginTemplate",
-  "name": "Plugin Template",
-  "description": "A plugin template",
+  "id": "dev.sammcheese.RepluggedPGP",
+  "name": "Replugged PGP",
+  "description": "Encrypt, Sign and Decrypt messages with the power of GPG",
   "author": {
-    "name": "replugged",
-    "discordID": "1000992611840049192",
-    "github": "replugged-org"
+    "name": "Samm-Cheese",
+    "discordID": "372148345894076416",
+    "github": "SammCheese"
   },
   "version": "1.0.0",
   "updater": {
     "type": "github",
-    "id": "replugged-org/plugin-template"
+    "id": "SammCheese/RepluggedPGP"
   },
   "license": "MIT",
   "type": "replugged-plugin",
-  "renderer": "src/index.ts"
+  "renderer": "src/index.ts",
+  "plaintextPatches": "src/plaintextPatches.ts"
 }
