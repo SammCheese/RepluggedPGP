@@ -32,7 +32,7 @@ export function Settings() {
       <Text.Eyebrow style={{ marginBottom: "5px" }}>Add other Public Key</Text.Eyebrow>
       <span style={{ width: "100%", display: "flex" }}>
         <TextInput
-          maxLength={5000}
+          maxLength={Infinity}
           value={publicKeyField}
           onChange={(e: string) => {
             setPublicKeyField(
@@ -72,10 +72,13 @@ export function Settings() {
       {showImportOwn && (
         <>
           <Text.Eyebrow style={{ marginTop: "5px", marginBottom: "5px" }}>Public Key</Text.Eyebrow>
-          <TextInput value={pubKey} maxLength={10000} onChange={(e) => setPubKey(e)}></TextInput>
+          <TextInput value={pubKey} maxLength={Infinity} onChange={(e) => setPubKey(e)}></TextInput>
           <Divider style={{ marginBottom: "15px", marginTop: "15px" }} />
           <Text.Eyebrow style={{ marginBottom: "5px" }}>Private Key</Text.Eyebrow>
-          <TextInput value={privKey} maxLength={10000} onChange={(e) => setPrivKey(e)}></TextInput>
+          <TextInput
+            value={privKey}
+            maxLength={Infinity}
+            onChange={(e) => setPrivKey(e)}></TextInput>
 
           <Button
             style={{ marginTop: "15px", marginBottom: "15px" }}
