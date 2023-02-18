@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import { VerificationResult } from "openpgp";
 
 interface KeyInfo {
@@ -21,4 +22,22 @@ interface addFileType {
 interface decryptMessageType {
   decrypted: string;
   signatures: VerificationResult[];
+}
+
+interface Attachment {
+  content_type: string;
+  filename: string;
+  id: string;
+  proxy_url?: string;
+  sensitive: boolean;
+  size: number;
+  spoiler: boolean;
+  url: string;
+}
+
+interface DiscordMessage {
+  channel: object;
+  content: string;
+  embeds: DiscordEmbed[];
+  attachments?: Attachment[];
 }

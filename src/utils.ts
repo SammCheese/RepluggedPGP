@@ -71,15 +71,14 @@ export async function signMessage(message: string): Promise<string> {
 export async function verifyMessage(
   ctMessage: string,
   publicKey: string,
-): Promise<VerificationResult[]> {
+): Promise<VerificationResult> {
   return new Promise(async (resolve) => {
     const signedMessage = await pgp.readCleartextMessage({ cleartextMessage: ctMessage });
     const verifyResult = await pgp.verify({
-      // @ts-expect-error TODO
       message: signedMessage,
       verificationKeys: await getKey(publicKey),
     });
-    resolve(verifyResult.signatures);
+    resolve(verifyResult.signatures[0]);
   });
 }
 
@@ -94,13 +93,26 @@ export async function encryptMessage(message: string, recepients: PublicKey[]): 
 }
 
 export async function decryptMessage(message: string): Promise<decryptMessageType> {
-  return await new Promise(async (resolve) => {
+  return await new Promise(async (resolve, reject) => {
     const readMessage = await pgp.readMessage({ armoredMessage: message });
-    const { data: decrypted, signatures } = await pgp.decrypt({
-      message: readMessage,
-      decryptionKeys: await getPrivateKey(await buildKeyPass()),
-    });
-    resolve({ decrypted, signatures });
+    try {
+      const { data: decrypted, signatures } = await pgp.decrypt({
+        message: readMessage,
+        decryptionKeys: await getPrivateKey(await buildKeyPass()),
+      });
+      resolve({ decrypted, signatures });
+    } catch (e) {
+      reject(e);
+    }
+  });
+}
+
+export async function parseMessageFileContent(url: string): Promise<string> {
+  if (!url.endsWith("message.txt")) return "";
+  return await new Promise(async (resolve) => {
+    await fetch(url)
+      .then((res) => resolve(res.text()))
+      .catch((e) => console.error(e));
   });
 }
 

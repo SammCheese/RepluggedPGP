@@ -1,4 +1,5 @@
 import { common, components } from "replugged";
+import { KeyInfo } from "../repluggedpgp";
 import { PGPSettings, pgpFormat } from "../utils";
 
 const { Button, Modal, Text, Divider } = components;

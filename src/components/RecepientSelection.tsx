@@ -42,7 +42,7 @@ function RecepientSelection(props: any) {
   return (
     <Modal.ModalRoot {...props}>
       <Modal.ModalHeader>
-        <Text.H1>Recepient Selection</Text.H1>
+        <Text.H1>Key Selection</Text.H1>
       </Modal.ModalHeader>
       <Modal.ModalContent>
         {savedRecepients[0] ? (
@@ -54,7 +54,6 @@ function RecepientSelection(props: any) {
               value: key.publicKey,
             }))}
             onChange={(e) => {
-              console.log(e);
               setRecepient(e);
             }}></SelectItem>
         ) : (
@@ -76,8 +75,6 @@ export function buildRecepientSelection(): Promise<string> {
           <RecepientSelection {...props} onConfirm={resolve} />
         </ErrorBoundary>
       ));
-    } catch (e) {
-      console.error(e);
-    }
+    } catch (e) {}
   });
 }
