@@ -11,7 +11,6 @@ function PasswordField(props: any) {
 
   const handleConfirm = () => {
     closeModal(modalKey);
-    console.log(passphrase);
     props.onConfirm(passphrase);
   };
 

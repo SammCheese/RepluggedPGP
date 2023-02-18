@@ -10,6 +10,7 @@ const { openModal } = common.modal;
 function ToggleModal(props: any) {
   let [signing, setSigning] = React.useState(PGPSettings.get("signingActive", false));
   let [encryption, setEncryption] = React.useState(PGPSettings.get("encryptionActive", false));
+  let [asFile, setAsFile] = React.useState(PGPSettings.get("asFile", false));
   let [hasKeyPair, setHasKeyPair] = React.useState(false);
 
   React.useEffect(() => {
@@ -54,13 +55,27 @@ function ToggleModal(props: any) {
                 Enable PGP Encryption
               </Text.Eyebrow>
             </Flex>
+            <Divider style={{ marginTop: "10px", marginBottom: "10px" }} />
+            <Flex>
+              <Switch
+                style={{ marginTop: "15px", marginBottom: "15px" }}
+                checked={asFile}
+                onChange={(e) => {
+                  setAsFile(e);
+                  PGPSettings.set("asFile", e);
+                }}
+              />
+              <Text.Eyebrow style={{ left: "20px", top: "4px", position: "relative" }}>
+                Always send as File if possible
+              </Text.Eyebrow>
+            </Flex>
           </>
         )}
         {!hasKeyPair && (
           <Button
             style={{ marginBottom: "15px", marginTop: "15px" }}
             onClick={() => buildKeyModal()}>
-            Generate a Keypair
+            Generate a Keypair First!
           </Button>
         )}
       </Modal.ModalContent>

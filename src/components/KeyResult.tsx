@@ -1,5 +1,6 @@
 import { common, components } from "replugged";
 import { set } from "idb-keyval";
+import { pgpFormat } from "../utils";
 
 const { Button, Modal, Text, Divider } = components;
 const { closeModal, openModal } = common.modal;
@@ -15,17 +16,19 @@ function KeyResult(props: any) {
       <Modal.ModalContent>
         <Text.Eyebrow>Public Key</Text.Eyebrow>
         <Divider style={{ marginBottom: "5px", marginTop: "5px" }} />
-        <Text selectable={true} markdown={true}>{`\`\`\`\n${props.publicKey}\n\`\`\``}</Text>
+        <Text selectable={true} markdown={true}>
+          {pgpFormat(props.publicKey)}
+        </Text>
         <Divider style={{ marginBottom: "15px", marginTop: "15px" }} />
         <Text.Eyebrow>Private Key (WARNING: DO NOT SHARE THIS WITH ANYONE)</Text.Eyebrow>
         <Divider style={{ marginBottom: "5px", marginTop: "5px" }} />
-        <Text markdown={true}>{`\`\`\`\n${props.privateKey}\n\`\`\``}</Text>
+        <Text markdown={true}>{pgpFormat(props.privateKey)}</Text>
         <Divider style={{ marginBottom: "15px", marginTop: "15px" }} />
         <Text.Eyebrow>Revocation Certificate</Text.Eyebrow>
         <Divider style={{ marginBottom: "5px", marginTop: "5px" }} />
-        <Text
-          selectable={true}
-          markdown={true}>{`\`\`\`\n${props.revocationCertificate}\n\`\`\``}</Text>
+        <Text selectable={true} markdown={true}>
+          {pgpFormat(props.revocationCertificate)}
+        </Text>
       </Modal.ModalContent>
       <Modal.ModalFooter>
         <Button

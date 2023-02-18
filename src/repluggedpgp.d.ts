@@ -7,3 +7,11 @@ interface KeyInfo {
     userID: string;
   };
 }
+
+interface addFile {
+  addFile: ({
+    file: { file: File, platform: number },
+    channelId: number,
+    draftType: number,
+  }) => void;
+}

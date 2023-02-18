@@ -1,11 +1,24 @@
-import { Key, MaybeArray, PrivateKey, PublicKey, UserIDPacket, VerificationResult } from "openpgp";
-import { settings } from "replugged";
 import { pgp } from "./lib";
-import { buildKeyPass } from "./components/KeyPassword";
 import { get } from "idb-keyval";
+import { common, settings, types, webpack } from "replugged";
+import { buildKeyPass } from "./components/KeyPassword";
+import { MaybeArray, PrivateKey, PublicKey, UserIDPacket, VerificationResult } from "openpgp";
+
+const { channels } = common;
+const { addFile }: types.ModuleExportsWithProps<"addFiles"> & addFile =
+  webpack.getByProps("addFiles")!;
+
+export const pgpFormat = (msg: string): string => {
+  return `\`\`\`\n${msg}\n\`\`\``;
+};
 
 export let PGPSettings: settings.SettingsManager<
-  { savedPubKeys: string[]; encryptionActive: boolean; signingActive: boolean },
+  {
+    savedPubKeys: string[];
+    encryptionActive: boolean;
+    signingActive: boolean;
+    asFile: boolean;
+  },
   never
 >;
 
@@ -14,6 +27,7 @@ export async function initSettings(): Promise<void> {
     savedPubKeys: [],
     encryptionActive: false,
     signingActive: false,
+    asFile: false,
   });
 }
 
@@ -25,12 +39,13 @@ export async function getKeyUserInfo(key: string): Promise<UserIDPacket | null> 
   });
 }
 
-export async function getKey(key: string): Promise<Key> {
+export async function getKey(key: string): Promise<PublicKey> {
   return await pgp.readKey({ armoredKey: key });
 }
 
 async function getPrivateKey(passphrase: string): Promise<MaybeArray<PrivateKey>> {
   const selfKeys = await get("selfKeys");
+
   const privateKey = await pgp.readPrivateKey({
     armoredKey: selfKeys.privateKey,
   });
@@ -44,7 +59,6 @@ export async function signMessage(message: string): Promise<string> {
   return new Promise(async (resolve) => {
     const unsigned = await pgp.createCleartextMessage({ text: message });
     const signingKey = await getPrivateKey(await buildKeyPass());
-    console.log(signingKey);
     const ctMessage = await pgp.sign({
       message: unsigned,
       signingKeys: signingKey,
@@ -75,5 +89,18 @@ export async function encryptMessage(message: string, recepients: PublicKey[]): 
       encryptionKeys: recepients,
     });
     resolve(encrypted);
+  });
+}
+
+export function sendAsFile(message: string): void {
+  addFile({
+    file: {
+      file: new File([new Blob([message], { type: "text/plain" })], "message.txt", {
+        type: "text/plain",
+      }),
+      platform: 1,
+    },
+    channelId: channels.getCurrentlySelectedChannelId(),
+    draftType: 0,
   });
 }

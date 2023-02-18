@@ -1,13 +1,13 @@
 import { common, components } from "replugged";
 import { buildAddKeyModal } from "./AddKey";
-import { getKey } from "../utils";
+import { getKey, pgpFormat } from "../utils";
 import { get, set } from "idb-keyval";
 
 const { React } = common;
 const { Text, TextInput, Button, Divider, Flex } = components;
 
 export function Settings() {
-  let [publicKeyField, setPublicKeyField] = React.useState(``);
+  let [publicKeyField, setPublicKeyField] = React.useState("");
   let [showPublicKey, setShowPublicKey] = React.useState(false);
   let [showImportOwn, setShowImportOwn] = React.useState(false);
   let [ownPublicKey, setOwnPublicKey] = React.useState("");
@@ -64,7 +64,7 @@ export function Settings() {
       {showPublicKey && (
         <>
           <Text selectable={true} markdown={true} style={{ marginBottom: "20px" }}>
-            {`\`\`\`\n${ownPublicKey}\n\`\`\``}
+            {pgpFormat(ownPublicKey)}
           </Text>
         </>
       )}
