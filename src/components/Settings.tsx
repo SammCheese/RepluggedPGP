@@ -2,7 +2,6 @@ import { common, components } from "replugged";
 import { buildAddKeyModal } from "./AddKey";
 import { getKey, pgpFormat } from "../utils";
 import { get, set } from "idb-keyval";
-import { buildPGPResult } from "./PGPResult";
 
 const { React } = common;
 const { Text, TextInput, Button, Divider, Flex } = components;
@@ -92,7 +91,7 @@ export function Settings() {
                 .replace("BLOCK-----", `BLOCK-----\n\n`)
                 .replace("-----END", `\n-----END`);
               set("selfKeys", { privateKey: formattedPriv, publicKey: formattedPub });
-              buildPGPResult({ pgpresult: "Added Key!" });
+              common.toast.toast("Added Keypair!", common.toast.Kind.SUCCESS);
             }}>
             Save
           </Button>

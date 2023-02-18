@@ -4,6 +4,7 @@ import {
   decryptMessage,
   encryptMessage,
   getKey,
+  getKeyUserInfo,
   initSettings,
   parseMessageFileContent,
   pgpFormat,
@@ -54,17 +55,29 @@ async function receiver(message: DiscordMessage): Promise<void> {
     buildPGPResult({ pgpresult: result });
   }
   if (tempContent.match(PGPCONSTS.PGP_SIGN_HEADER)) {
-    let result;
+    const pubKeys = PGPSettings.get("savedPubKeys", []);
 
-    try {
-      const { verified, keyID } = await verifyMessage(tempContent, await buildRecepientSelection());
+    let sigVerification = "Failed to validate Message";
 
-      if (await verified) result = `Successfully validated message with Key: ${keyID.toHex()}`;
-    } catch (e) {
-      result = `Message verification failed\n${e}`;
+    for (let i = 0; i < pubKeys.length; i++) {
+      try {
+        const { verified, keyID } = await verifyMessage(tempContent, pubKeys[i]);
+        if (await verified) {
+          const keyUser = await getKeyUserInfo(pubKeys[i]);
+          sigVerification = `Successfully validated Message from ${keyUser?.userID}\n(${keyID
+            .toHex()
+            .toUpperCase()})`;
+          break;
+        }
+      } catch {
+        // Do nothing and go to the next Key
+      }
     }
 
-    buildPGPResult({ pgpresult: result });
+    message.content = message.content.replace(
+      /^`{3}\n(-----BEGIN PGP SIGNED MESSAGE-----)\n(.*Hash[^\r\n]*[\r\n]+)([\s\S]*?)(-----BEGIN PGP SIGNATURE-----[\s\S]*?-----END PGP SIGNATURE-----)\n`{3}/gms,
+      `$3\`\`\`\n${sigVerification}\n\`\`\``,
+    );
   }
   if (tempContent.match(PGPCONSTS.PGP_PUBLIC_KEY_HEADER)) {
     void buildAddKeyModal({
