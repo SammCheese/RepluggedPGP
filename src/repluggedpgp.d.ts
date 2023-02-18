@@ -1,3 +1,5 @@
+import { VerificationResult } from "openpgp";
+
 interface KeyInfo {
   created: Date;
   user: {
@@ -8,10 +10,15 @@ interface KeyInfo {
   };
 }
 
-interface addFile {
+interface addFileType {
   addFile: ({
     file: { file: File, platform: number },
     channelId: number,
     draftType: number,
   }) => void;
+}
+
+interface decryptMessageType {
+  decrypted: string;
+  signatures: VerificationResult[];
 }

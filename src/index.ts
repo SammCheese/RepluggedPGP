@@ -41,7 +41,8 @@ async function injectSendMessage(): Promise<void> {
     if (args[1].content.length > 2000) return sendAsFile(args[1].content);
 
     // do not format in files
-    if (!asFile) args[1].content = pgpFormat(args[1].content);
+    if ((!asFile && encryptionActive) || signingActive)
+      args[1].content = pgpFormat(args[1].content);
 
     // only send as file if enabled and either signing or encryption is active
     return asFile && (signingActive || encryptionActive)

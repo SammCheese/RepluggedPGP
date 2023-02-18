@@ -3,9 +3,10 @@ import { get } from "idb-keyval";
 import { common, settings, types, webpack } from "replugged";
 import { buildKeyPass } from "./components/KeyPassword";
 import { MaybeArray, PrivateKey, PublicKey, UserIDPacket, VerificationResult } from "openpgp";
+import { addFileType, decryptMessageType } from "./repluggedpgp";
 
 const { channels } = common;
-const { addFile }: types.ModuleExportsWithProps<"addFiles"> & addFile =
+const { addFile }: types.ModuleExportsWithProps<"addFiles"> & addFileType =
   webpack.getByProps("addFiles")!;
 
 export const pgpFormat = (msg: string): string => {
@@ -89,6 +90,17 @@ export async function encryptMessage(message: string, recepients: PublicKey[]): 
       encryptionKeys: recepients,
     });
     resolve(encrypted);
+  });
+}
+
+export async function decryptMessage(message: string): Promise<decryptMessageType> {
+  return await new Promise(async (resolve) => {
+    const readMessage = await pgp.readMessage({ armoredMessage: message });
+    const { data: decrypted, signatures } = await pgp.decrypt({
+      message: readMessage,
+      decryptionKeys: await getPrivateKey(await buildKeyPass()),
+    });
+    resolve({ decrypted, signatures });
   });
 }
 
