@@ -1,5 +1,5 @@
 import { common, components } from "replugged";
-import { PGPSettings } from "../utils";
+import { PGPSettings, pgpFormat } from "../utils";
 
 const { Button, Modal, Text, Divider } = components;
 const { closeModal, openModal } = common.modal;
@@ -31,10 +31,9 @@ function AddKey(props: any) {
         <Text style={{ marginBottom: "5px" }}>comment: {info.user.comment || "No Comment"}</Text>
         <Text style={{ marginBottom: "5px" }}>Created: {info?.created.toString()}</Text>
         <Divider style={{ marginBottom: "15px", marginTop: "15px" }}></Divider>
-        <Text
-          markdown={true}
-          selectable={true}
-          lineClamp={80}>{`\`\`\`\n${props.pubKey}\n\`\`\``}</Text>
+        <Text markdown={true} selectable={true} lineClamp={80}>
+          {pgpFormat(props.pubKey)}
+        </Text>
       </Modal.ModalContent>
       <Modal.ModalFooter>
         <Button
