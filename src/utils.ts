@@ -10,7 +10,6 @@ const { addFile }: types.ModuleExportsWithProps<"addFiles"> & addFileType =
   webpack.getByProps("addFiles")!;
 
 export const pgpFormat = (msg: string): string => {
-  msg.replaceAll("```", "");
   return `\`\`\`\n${msg}\n\`\`\``;
 };
 

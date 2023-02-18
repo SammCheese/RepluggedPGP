@@ -33,7 +33,7 @@ function AddKey(props: any) {
         <Text style={{ marginBottom: "5px" }}>Created: {info?.created.toString()}</Text>
         <Divider style={{ marginBottom: "15px", marginTop: "15px" }}></Divider>
         <Text markdown={true} selectable={true} lineClamp={80}>
-          {pgpFormat(props.pubKey)}
+          {props.pubKey.includes("`") ? props.pubKey : pgpFormat(props.pubKey)}
         </Text>
       </Modal.ModalContent>
       <Modal.ModalFooter>
