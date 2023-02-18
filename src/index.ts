@@ -38,25 +38,26 @@ export async function start(): Promise<void> {
 }
 
 async function receiver(message: DiscordMessage): Promise<void> {
-  if (message.content.match(PGPCONSTS.PGP_MESSAGE_HEADER)) {
-    let result;
+  let tempContent = message.content;
 
+  if (message?.attachments![0]?.filename)
+    tempContent = await parseMessageFileContent(message?.attachments[0].url);
+
+  if (tempContent.match(PGPCONSTS.PGP_MESSAGE_HEADER)) {
+    let result;
     try {
-      const decrypted = await decryptMessage(message.content);
+      const decrypted = await decryptMessage(tempContent);
       result = decrypted.decrypted;
     } catch {
       result = "Wrong Password or no Secret Key!";
     }
     buildPGPResult({ pgpresult: result });
   }
-  if (message.content.match(PGPCONSTS.PGP_SIGN_HEADER)) {
+  if (tempContent.match(PGPCONSTS.PGP_SIGN_HEADER)) {
     let result;
 
     try {
-      const { verified, keyID } = await verifyMessage(
-        message.content,
-        await buildRecepientSelection(),
-      );
+      const { verified, keyID } = await verifyMessage(tempContent, await buildRecepientSelection());
 
       if (await verified) result = `Successfully validated message with Key: ${keyID.toHex()}`;
     } catch (e) {
@@ -65,10 +66,10 @@ async function receiver(message: DiscordMessage): Promise<void> {
 
     buildPGPResult({ pgpresult: result });
   }
-  if (message.content.match(PGPCONSTS.PGP_PUBLIC_KEY_HEADER)) {
+  if (tempContent.match(PGPCONSTS.PGP_PUBLIC_KEY_HEADER)) {
     void buildAddKeyModal({
-      keyInfo: await getKey(message.content),
-      pubKey: message.content,
+      keyInfo: await getKey(tempContent),
+      pubKey: tempContent,
     });
   }
 }

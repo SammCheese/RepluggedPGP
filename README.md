@@ -1,8 +1,12 @@
-# Replugged PGP [WIP]
+# Replugged PGP
 
 Encrypt or Sign your messages with GPG :D
 
-# THIS PLUGIN IS STILL UNDER CONSTRUCTION AND MAY NOT PROPERLY WORK AT THIS POINT
+# Installation
+
+Just click the button below!
+
+[![Install](https://img.shields.io/badge/-Install%20for%20Replugged-blue?style=for-the-badge&logo=none)](https://replugged.dev/install?identifier=SammCheese/RepluggedPGP&source=github)
 
 ## Contributing
 

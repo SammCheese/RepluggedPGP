@@ -1,7 +1,7 @@
 {
-  "name": "plugin-template",
-  "version": "1.0.0",
-  "description": "A plugin template",
+  "name": "repluggedpgp",
+  "version": "1.0.1",
+  "description": "Encrypt, Sign and Decrypt messages with the power of GPG",
   "engines": {
     "node": ">=14.0.0"
   },
@@ -19,7 +19,7 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "Unlicensed",
   "devDependencies": {
     "@openpgp/web-stream-tools": "^0.0.13",
     "@types/node": "^18.11.2",
