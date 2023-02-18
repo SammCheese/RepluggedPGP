@@ -2,6 +2,7 @@ import { common, components } from "replugged";
 import { buildAddKeyModal } from "./AddKey";
 import { getKey, pgpFormat } from "../utils";
 import { get, set } from "idb-keyval";
+import { buildPGPResult } from "./PGPResult";
 
 const { React } = common;
 const { Text, TextInput, Button, Divider, Flex } = components;
@@ -63,7 +64,7 @@ export function Settings() {
       </Flex>
       {showPublicKey && (
         <>
-          <Text selectable={true} markdown={true} style={{ marginBottom: "20px" }}>
+          <Text selectable={true} markdown={true} lineClamp={80} style={{ marginBottom: "20px" }}>
             {pgpFormat(ownPublicKey)}
           </Text>
         </>
@@ -71,16 +72,24 @@ export function Settings() {
       {showImportOwn && (
         <>
           <Text.Eyebrow style={{ marginTop: "5px", marginBottom: "5px" }}>Public Key</Text.Eyebrow>
-          <TextInput value={pubKey} maxLength={5000} onChange={(e) => setPubKey(e)}></TextInput>
+          <TextInput value={pubKey} maxLength={10000} onChange={(e) => setPubKey(e)}></TextInput>
           <Divider style={{ marginBottom: "15px", marginTop: "15px" }} />
           <Text.Eyebrow style={{ marginBottom: "5px" }}>Private Key</Text.Eyebrow>
-          <TextInput value={privKey} maxLength={5000} onChange={(e) => setPrivKey(e)}></TextInput>
+          <TextInput value={privKey} maxLength={10000} onChange={(e) => setPrivKey(e)}></TextInput>
 
           <Button
             style={{ marginTop: "15px", marginBottom: "15px" }}
             onClick={() => {
               if (!privKey || !pubKey) return;
-              set("selfKeys", { privateKey: privKey, publicKey: pubKey });
+
+              const formattedPriv = privKey
+                .replace("BLOCK-----", `BLOCK-----\n\n`)
+                .replace("-----END", `\n-----END`);
+              const formattedPub = pubKey
+                .replace("BLOCK-----", `BLOCK-----\n\n`)
+                .replace("-----END", `\n-----END`);
+              set("selfKeys", { privateKey: formattedPriv, publicKey: formattedPub });
+              buildPGPResult({ pgpresult: "Added Key!" });
             }}>
             Save
           </Button>
