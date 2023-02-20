@@ -21,10 +21,14 @@ import { PGPCONSTS } from "./constants";
 import { DiscordMessage } from "./repluggedpgp";
 import { buildAddKeyModal } from "./components/AddKey";
 import { buildPGPResult } from "./components/PGPResult";
+import { del } from "idb-keyval";
 
 const injector = new Injector();
 
 export async function start(): Promise<void> {
+  // Delete the remembered password on restart
+  await del("password");
+
   // Initialize Settings
   await initSettings();
   await injectSendMessage();
@@ -62,6 +66,7 @@ async function receiver(message: DiscordMessage): Promise<void> {
     for (let i = 0; i < pubKeys.length; i++) {
       try {
         const { verified, keyID } = await verifyMessage(tempContent, pubKeys[i]);
+        console.log(await verified);
         if (await verified) {
           const keyUser = await getKeyUserInfo(pubKeys[i]);
           sigVerification = `Successfully validated Message from ${keyUser?.userID}\n(${keyID
@@ -69,15 +74,15 @@ async function receiver(message: DiscordMessage): Promise<void> {
             .toUpperCase()})`;
           break;
         }
-      } catch {
-        // Do nothing and go to the next Key
-      }
+      } catch {}
     }
 
-    message.content = message.content.replace(
-      /^`{3}\n(-----BEGIN PGP SIGNED MESSAGE-----)\n(.*Hash[^\r\n]*[\r\n]+)([\s\S]*?)(-----BEGIN PGP SIGNATURE-----[\s\S]*?-----END PGP SIGNATURE-----)\n`{3}/gms,
-      `$3\`\`\`\n${sigVerification}\n\`\`\``,
-    );
+    message.content = sigVerification.includes("Successfully")
+      ? message.content.replace(
+          /^`{3}\n{1,}(-----BEGIN PGP SIGNED MESSAGE-----)\n(.*Hash[^\r\n]*[\r\n]+)([\s\S]*?)(-----BEGIN PGP SIGNATURE-----[\s\S]*?-----END PGP SIGNATURE-----)(\n{1,})`{3}/gms,
+          `$3\`\`\`\n${sigVerification}\n\`\`\``,
+        )
+      : (message.content += `\`\`\`\n${sigVerification}\n\`\`\``);
   }
   if (tempContent.match(PGPCONSTS.PGP_PUBLIC_KEY_HEADER)) {
     void buildAddKeyModal({

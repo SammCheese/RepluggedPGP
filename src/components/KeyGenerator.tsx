@@ -19,10 +19,10 @@ function KeyGenerateModal(props: any) {
         <Text.H1>Generate Keypair</Text.H1>
       </Modal.ModalHeader>
       <Modal.ModalContent>
-        <Text.Eyebrow>Username</Text.Eyebrow>
+        <Text.Eyebrow>Username (required)</Text.Eyebrow>
         <TextInput value={name} onChange={(e: string) => setName(e)} />
         <Divider style={{ marginBottom: "15px", marginTop: "15px" }} />
-        <Text.Eyebrow>Email</Text.Eyebrow>
+        <Text.Eyebrow>Email (required)</Text.Eyebrow>
         <TextInput value={email} onChange={(e: string) => setEmail(e)} />
         <Divider style={{ marginBottom: "15px", marginTop: "15px" }} />
         <Text.Eyebrow>Comment</Text.Eyebrow>

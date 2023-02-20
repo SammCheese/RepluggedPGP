@@ -33,62 +33,71 @@ export async function initSettings(): Promise<void> {
 }
 
 export async function getKeyUserInfo(key: string): Promise<UserIDPacket | null> {
-  return await new Promise((resolve) => {
-    void getKey(key).then((res) => {
-      return resolve(res?.users[0]?.userID);
-    });
-  });
+  const resp = await getKey(key);
+  return resp?.users[0]?.userID ?? null;
 }
 
 export async function getKey(key: string): Promise<PublicKey> {
   return await pgp.readKey({ armoredKey: key });
 }
 
-async function getPrivateKey(passphrase: string): Promise<MaybeArray<PrivateKey>> {
+async function getPrivateKey(retries = 3): Promise<MaybeArray<PrivateKey>> {
   const selfKeys = await get("selfKeys");
+  const existingPassword = await get("password");
 
-  const privateKey = await pgp.readPrivateKey({
-    armoredKey: selfKeys.privateKey,
-  });
-  return await pgp.decryptKey({
-    privateKey,
-    passphrase,
-  });
+  if (existingPassword) {
+    try {
+      return await pgp.decryptKey({
+        privateKey: await pgp.readPrivateKey({ armoredKey: selfKeys.privateKey }),
+        passphrase: existingPassword,
+      });
+    } catch {}
+  }
+
+  for (let i = 0; i < retries; i++) {
+    try {
+      const passphrase = await buildKeyPass({ attempts: i + 1, maxRetries: retries });
+      return await pgp.decryptKey({
+        privateKey: await pgp.readPrivateKey({ armoredKey: selfKeys.privateKey }),
+        passphrase,
+      });
+    } catch {
+      console.log(`Failed to decrypt key, attempt ${i + 1} of ${retries}`);
+    }
+  }
+  throw new Error(`Failed to decrypt private key after ${retries} attempts`);
 }
 
 export async function signMessage(message: string): Promise<string> {
-  return new Promise(async (resolve) => {
-    const unsigned = await pgp.createCleartextMessage({ text: message });
-    const signingKey = await getPrivateKey(await buildKeyPass());
-    const ctMessage = await pgp.sign({
-      message: unsigned,
-      signingKeys: signingKey,
-    });
-    resolve(ctMessage);
+  const unsigned = await pgp.createCleartextMessage({ text: message });
+  const signingKey = await getPrivateKey();
+  const signed = await pgp.sign({
+    message: unsigned,
+    signingKeys: signingKey,
   });
+  return signed;
 }
 
 export async function verifyMessage(
   ctMessage: string,
   publicKey: string,
 ): Promise<VerificationResult> {
-  return new Promise(async (resolve) => {
-    const signedMessage = await pgp.readCleartextMessage({ cleartextMessage: ctMessage });
-    const verifyResult = await pgp.verify({
-      message: signedMessage,
-      verificationKeys: await getKey(publicKey),
-    });
-    resolve(verifyResult.signatures[0]);
+  const signedMessage = await pgp.readCleartextMessage({ cleartextMessage: ctMessage });
+
+  // // @ts-expect-error Typemismatch https://github.com/openpgpjs/openpgpjs/issues/1582
+  const vResult = await pgp.verify({
+    // // @ts-expect-error Typemismatch
+    message: signedMessage,
+    verificationKeys: await getKey(publicKey),
   });
+
+  return vResult.signatures[0];
 }
 
 export async function encryptMessage(message: string, recepients: PublicKey[]): Promise<string> {
-  return new Promise(async (resolve) => {
-    const encrypted = await pgp.encrypt({
-      message: await pgp.createMessage({ text: message }),
-      encryptionKeys: recepients,
-    });
-    resolve(encrypted);
+  return await pgp.encrypt({
+    message: await pgp.createMessage({ text: message }),
+    encryptionKeys: recepients,
   });
 }
 
@@ -98,7 +107,7 @@ export async function decryptMessage(message: string): Promise<decryptMessageTyp
     try {
       const { data: decrypted, signatures } = await pgp.decrypt({
         message: readMessage,
-        decryptionKeys: await getPrivateKey(await buildKeyPass()),
+        decryptionKeys: await getPrivateKey(),
       });
       resolve({ decrypted, signatures });
     } catch (e) {

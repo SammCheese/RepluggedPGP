@@ -82,16 +82,19 @@ export function Settings() {
           <Button
             style={{ marginTop: "15px", marginBottom: "15px" }}
             onClick={() => {
-              if (!privKey || !pubKey) return;
+              try {
+                const formattedPriv = privKey
+                  .replace("BLOCK-----", `BLOCK-----\n\n`)
+                  .replace("-----END", `\n-----END`);
+                const formattedPub = pubKey
+                  .replace("BLOCK-----", `BLOCK-----\n\n`)
+                  .replace("-----END", `\n-----END`);
 
-              const formattedPriv = privKey
-                .replace("BLOCK-----", `BLOCK-----\n\n`)
-                .replace("-----END", `\n-----END`);
-              const formattedPub = pubKey
-                .replace("BLOCK-----", `BLOCK-----\n\n`)
-                .replace("-----END", `\n-----END`);
-              set("selfKeys", { privateKey: formattedPriv, publicKey: formattedPub });
-              common.toast.toast("Added Keypair!", common.toast.Kind.SUCCESS);
+                set("selfKeys", { privateKey: formattedPriv, publicKey: formattedPub });
+                common.toast.toast("Added Keypair!", common.toast.Kind.SUCCESS);
+              } catch (e) {
+                common.toast.toast("Failed to add Keys", common.toast.Kind.FAILURE);
+              }
             }}>
             Save
           </Button>
