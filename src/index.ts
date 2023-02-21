@@ -1,4 +1,4 @@
-import { Injector, common } from "replugged";
+import { Injector, common, types } from "replugged";
 import {
   PGPSettings,
   decryptMessage,
@@ -39,6 +39,7 @@ export async function start(): Promise<void> {
     popoverIcon,
     receiver,
     parseMessageFileContent,
+    buildPopover,
   };
 }
 
@@ -123,3 +124,36 @@ export function stop(): void {
 }
 
 export { Settings } from "./components/Settings";
+
+export function buildPopover(
+  fn: types.AnyFunction,
+  channel: object,
+  message: DiscordMessage,
+): unknown | null {
+  const actionType = {
+    "Add Key": /BEGIN PGP PUBLIC KEY BLOCK/,
+    "Verify Signature": /BEGIN PGP SIGNED MESSAGE/,
+    "Decrypt PGP Message": /BEGIN PGP MESSAGE/,
+  };
+
+  const contentRegexMatch = Object.entries(actionType).find(([_, regex]) =>
+    regex.test(message?.content),
+  );
+
+  const hasAttachment = message?.attachments && message?.attachments[0]?.filename === "message.txt";
+
+  if (contentRegexMatch || hasAttachment) {
+    return fn({
+      label: contentRegexMatch ? contentRegexMatch[0] : "PGP Actions",
+      icon: popoverIcon,
+      message,
+      channel,
+      onClick: () => {
+        // @ts-expect-error added to window
+        window.RPGP.receiver(message);
+      },
+    });
+  }
+
+  return null;
+}
