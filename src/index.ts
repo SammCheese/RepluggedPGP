@@ -15,7 +15,6 @@ import {
 
 import { popoverIcon } from "./assets/PopoverIcon";
 import { PGPToggleButton } from "./assets/ToggleButton";
-import { buildRecepientSelection } from "./components/RecepientSelection";
 
 import { PGPCONSTS } from "./constants";
 import { DiscordMessage } from "./repluggedpgp";
@@ -43,6 +42,7 @@ export async function start(): Promise<void> {
   };
 }
 
+// Used for Decryption
 async function receiver(message: DiscordMessage): Promise<void> {
   let tempContent = message.content;
 
@@ -98,15 +98,16 @@ async function injectSendMessage(): Promise<void> {
   injector.instead(common.messages, "sendMessage", async (args, fn) => {
     const { signingActive, encryptionActive, asFile } = PGPSettings.all();
 
-    if (encryptionActive)
-      args[1].content = await encryptMessage(args[1].content, [
-        await getKey(await buildRecepientSelection()),
-      ]);
+    if (encryptionActive) args[1].content = await encryptMessage(args[1].content);
 
     if (signingActive) args[1].content = await signMessage(args[1].content);
 
+    // premiumType, 0 - No nitro, 1 - Nitro Classic, 2 - Nitro, 3 - Nitro Basic
+    const isNitro = common.users.getCurrentUser().premiumType === 2;
+
     // Always send as file if encrypted string is above no-nitro limit
-    if (args[1].content.length > 2000) return sendAsFile(args[1].content);
+    if (isNitro ? args[1].content.length > 4000 : args[1].content.length > 2000)
+      return sendAsFile(args[1].content);
 
     // do not format in files
     if (!asFile && (encryptionActive || signingActive))

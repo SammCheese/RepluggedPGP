@@ -13,7 +13,7 @@ specifiers:
   idb-keyval: ^6.2.0
   openpgp: ^5.5.0
   prettier: ^2.8.1
-  replugged: 4.0.0-beta0.27
+  replugged: 4.0.0-beta0.28
   typescript: ^4.8.4
 
 dependencies:
@@ -31,7 +31,7 @@ devDependencies:
   eslint-plugin-react: 7.31.10_eslint@8.25.0
   openpgp: 5.5.0
   prettier: 2.8.1
-  replugged: 4.0.0-beta0.27
+  replugged: 4.0.0-beta0.28
   typescript: 4.8.4
 
 packages:
@@ -3272,8 +3272,8 @@ packages:
     engines: {node: '>=8'}
     dev: true
 
-  /replugged/4.0.0-beta0.27:
-    resolution: {integrity: sha512-8ymTZNi3eBFVGug8HTG8QT/hodf9vh3ZcVFPTOfNlE2fxkPGYhAtfVSd+DU0nSxe+x/x41bwElqGi+a38OYPiw==}
+  /replugged/4.0.0-beta0.28:
+    resolution: {integrity: sha512-AcKxp03d/eqHWHc1cHUng4X7+ACCiLweyR5nCLOMTF6CrZX+G1ah2HA8raDZssCbCvmO8S6PejgsYShDNuH5/g==}
     engines: {node: '>=14.0.0'}
     hasBin: true
     dependencies:

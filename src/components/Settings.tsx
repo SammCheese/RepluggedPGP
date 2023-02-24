@@ -1,6 +1,6 @@
 import { common, components } from "replugged";
 import { buildAddKeyModal } from "./AddKey";
-import { getKey, pgpFormat } from "../utils";
+import { PGPSettings, getKey, pgpFormat } from "../utils";
 import { get, set } from "idb-keyval";
 
 const { React } = common;
@@ -42,7 +42,10 @@ export function Settings() {
         />
         <Button
           style={{ flexBasis: "10%" }}
+          // eslint-disable-next-line consistent-return
           onClick={async () => {
+            if (PGPSettings.get("savedPubKeys")?.includes(publicKeyField))
+              return common.toast.toast("Key already Added", common.toast.Kind.MESSAGE);
             buildAddKeyModal({
               keyInfo: await getKey(publicKeyField),
               pubKey: publicKeyField,

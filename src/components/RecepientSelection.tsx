@@ -3,7 +3,7 @@ import { common, components } from "replugged";
 import { PGPSettings, getKey } from "../utils";
 
 const { React } = common;
-const { Button, Modal, Text, SelectItem, ErrorBoundary } = components;
+const { Button, Modal, Text, CheckboxItem, ErrorBoundary } = components;
 const { closeModal, openModal } = common.modal;
 
 let modalKey: any;
@@ -14,29 +14,33 @@ interface PubKey {
 }
 
 function RecepientSelection(props: any) {
-  let [recepient, setRecepient] = React.useState("");
-  let [savedRecepients] = React.useState<PubKey[]>([]);
+  let [recepients, setRecepients] = React.useState<string[]>([]);
+  let [savedRecepients, setSavedRecepients] = React.useState<PubKey[]>([]);
+  let [isLoading, setIsLoading] = React.useState(true);
 
   const handleConfirm = () => {
     closeModal(modalKey);
-    props.onConfirm(recepient);
+    props.onConfirm(recepients);
   };
 
   onkeydown = (e) => {
     if (e.key === "Enter") handleConfirm();
   };
 
-  async function convertKeys() {
-    const keys = PGPSettings.get("savedPubKeys", []);
-
-    for (const res of keys) {
-      const keyObject = await getKey(res);
-      savedRecepients.push({ keyObject, publicKey: res });
-    }
-  }
-
   React.useEffect(() => {
-    convertKeys();
+    async function convertKeys() {
+      const keys = PGPSettings.get("savedPubKeys", []);
+
+      const recepients = await Promise.all(
+        keys.map(async (res) => {
+          const keyObject = await getKey(res);
+          return { keyObject, publicKey: res };
+        }),
+      );
+      setSavedRecepients(recepients);
+    }
+
+    convertKeys().then(() => setIsLoading(false));
   }, []);
 
   return (
@@ -45,19 +49,29 @@ function RecepientSelection(props: any) {
         <Text.H1>Key Selection</Text.H1>
       </Modal.ModalHeader>
       <Modal.ModalContent>
-        {savedRecepients[0] ? (
-          <SelectItem
-            style={{ marginTop: "15px" }}
-            value={recepient}
-            options={savedRecepients.map((key) => ({
-              label: key.keyObject.users[0].userID?.userID! ?? "Couldnt fetch Username",
-              value: key.publicKey,
-            }))}
-            onChange={(e) => {
-              setRecepient(e);
-            }}></SelectItem>
-        ) : (
-          <Text>Looks like you dont have any Public Keys yet, try adding some in Settings</Text>
+        {!isLoading && (
+          <>
+            {savedRecepients[0] ? (
+              <>
+                {savedRecepients.map((key) => (
+                  <CheckboxItem
+                    key={key.keyObject.getKeyID().toHex()}
+                    onChange={() => {
+                      setRecepients(
+                        recepients.includes(key.publicKey)
+                          ? recepients.filter((elem) => elem !== key.publicKey)
+                          : recepients.concat(key.publicKey),
+                      );
+                    }}
+                    value={recepients.includes(key.publicKey)}>
+                    {`${key.keyObject.users[0].userID?.userID}` ?? "Unknown User"}
+                  </CheckboxItem>
+                ))}
+              </>
+            ) : (
+              <Text>Looks like you dont have any Public Keys yet, try adding some in Settings</Text>
+            )}
+          </>
         )}
       </Modal.ModalContent>
       <Modal.ModalFooter>
@@ -67,7 +81,7 @@ function RecepientSelection(props: any) {
   );
 }
 
-export function buildRecepientSelection(): Promise<string> {
+export function buildRecepientSelection(): Promise<string[]> {
   return new Promise((resolve) => {
     try {
       modalKey = openModal((props: any) => (

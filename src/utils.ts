@@ -4,6 +4,7 @@ import { common, settings, types, webpack } from "replugged";
 import { buildKeyPass } from "./components/KeyPassword";
 import { MaybeArray, PrivateKey, PublicKey, UserIDPacket, VerificationResult } from "openpgp";
 import { addFileType, decryptMessageType } from "./repluggedpgp";
+import { buildRecepientSelection } from "./components/RecepientSelection";
 
 const { channels } = common;
 const { addFile }: types.ModuleExportsWithProps<"addFiles"> & addFileType =
@@ -94,10 +95,13 @@ export async function verifyMessage(
   return vResult.signatures[0];
 }
 
-export async function encryptMessage(message: string, recepients: PublicKey[]): Promise<string> {
+export async function encryptMessage(message: string): Promise<string> {
+  const recepients = await buildRecepientSelection();
+  const publicKeys = await Promise.all(recepients.map((armoredKey) => pgp.readKey({ armoredKey })));
+
   return await pgp.encrypt({
     message: await pgp.createMessage({ text: message }),
-    encryptionKeys: recepients,
+    encryptionKeys: publicKeys,
   });
 }
 
@@ -117,7 +121,7 @@ export async function decryptMessage(message: string): Promise<decryptMessageTyp
 }
 
 export async function parseMessageFileContent(url: string): Promise<string> {
-  if (!url.endsWith("message.txt")) return "";
+  if (!url.endsWith(".txt") || !url.endsWith(".asc")) return "";
   return await new Promise(async (resolve) => {
     await fetch(url)
       .then((res) => resolve(res.text()))
