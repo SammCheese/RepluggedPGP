@@ -44,7 +44,11 @@ export function Settings() {
           style={{ flexBasis: "10%" }}
           // eslint-disable-next-line consistent-return
           onClick={async () => {
-            if (PGPSettings.get("savedPubKeys")?.includes(publicKeyField))
+            if (
+              PGPSettings.get("savedPubKeys")?.some(
+                (element) => element.publicKey === publicKeyField,
+              )
+            )
               return common.toast.toast("Key already Added", common.toast.Kind.MESSAGE);
             buildAddKeyModal({
               keyInfo: await getKey(publicKeyField),

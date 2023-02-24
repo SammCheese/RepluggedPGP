@@ -40,10 +40,8 @@ function AddKey(props: any) {
         <Button
           onClick={() => {
             const savedArr = PGPSettings.get("savedPubKeys", []);
-            if (!savedArr.some((k) => k.includes(props.pubKey))) {
-              PGPSettings.set("savedPubKeys", [...savedArr, props.pubKey]);
-              common.toast.toast("Added Key!", common.toast.Kind.SUCCESS);
-            }
+            PGPSettings.set("savedPubKeys", [...savedArr, { publicKey: props.pubKey, userID: "" }]);
+            common.toast.toast("Added Key!", common.toast.Kind.SUCCESS);
             closeModal(modalKey);
           }}>
           Add Public Key

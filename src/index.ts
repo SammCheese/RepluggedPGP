@@ -66,10 +66,10 @@ async function receiver(message: DiscordMessage): Promise<void> {
 
     for (let i = 0; i < pubKeys.length; i++) {
       try {
-        const { verified, keyID } = await verifyMessage(tempContent, pubKeys[i]);
+        const { verified, keyID } = await verifyMessage(tempContent, pubKeys[i].publicKey);
         console.log(await verified);
         if (await verified) {
-          const keyUser = await getKeyUserInfo(pubKeys[i]);
+          const keyUser = await getKeyUserInfo(pubKeys[i].publicKey);
           sigVerification = `Successfully validated Message from ${keyUser?.userID}\n(${keyID
             .toHex()
             .toUpperCase()})`;
@@ -141,7 +141,7 @@ export function buildPopover(
     regex.test(message?.content),
   );
 
-  const hasAttachment = message?.attachments && message?.attachments[0]?.filename === "message.txt";
+  const hasAttachment = message?.attachments && message?.attachments[0]?.filename.endsWith(".txt");
 
   if (contentRegexMatch || hasAttachment) {
     return fn({

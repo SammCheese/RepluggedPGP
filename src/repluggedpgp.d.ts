@@ -1,6 +1,11 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { VerificationResult } from "openpgp";
 
+interface savedPubKeyType {
+  publicKey: string;
+  userID: string;
+}
+
 interface KeyInfo {
   created: Date;
   user: {

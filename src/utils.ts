@@ -3,8 +3,8 @@ import { get } from "idb-keyval";
 import { common, settings, types, webpack } from "replugged";
 import { buildKeyPass } from "./components/KeyPassword";
 import { MaybeArray, PrivateKey, PublicKey, UserIDPacket, VerificationResult } from "openpgp";
-import { addFileType, decryptMessageType } from "./repluggedpgp";
-import { buildRecepientSelection } from "./components/RecepientSelection";
+import { addFileType, decryptMessageType, savedPubKeyType } from "./repluggedpgp";
+import { buildRecipientSelection } from "./components/RecipientSelection";
 
 const { channels } = common;
 const { addFile }: types.ModuleExportsWithProps<"addFiles"> & addFileType =
@@ -16,7 +16,7 @@ export const pgpFormat = (msg: string): string => {
 
 export let PGPSettings: settings.SettingsManager<
   {
-    savedPubKeys: string[];
+    savedPubKeys: savedPubKeyType[];
     encryptionActive: boolean;
     signingActive: boolean;
     asFile: boolean;
@@ -31,6 +31,20 @@ export async function initSettings(): Promise<void> {
     signingActive: false,
     asFile: false,
   });
+
+  await tryMigrateSettings();
+}
+
+// eslint-disable-next-line @typescript-eslint/require-await
+async function tryMigrateSettings(): Promise<void> {
+  const prevSettings = PGPSettings.get("savedPubKeys", []);
+  if (!prevSettings || !prevSettings.some((element) => typeof element === "string")) return;
+  let newSettings: savedPubKeyType[] = prevSettings.map((element) => {
+    if (typeof element === "string") return { publicKey: element, userID: "" };
+    return element;
+  });
+  console.log(newSettings);
+  PGPSettings.set("savedPubKeys", newSettings);
 }
 
 export async function getKeyUserInfo(key: string): Promise<UserIDPacket | null> {
@@ -96,8 +110,8 @@ export async function verifyMessage(
 }
 
 export async function encryptMessage(message: string): Promise<string> {
-  const recepients = await buildRecepientSelection();
-  const publicKeys = await Promise.all(recepients.map((armoredKey) => pgp.readKey({ armoredKey })));
+  const recipients = await buildRecipientSelection();
+  const publicKeys = await Promise.all(recipients.map((armoredKey) => pgp.readKey({ armoredKey })));
 
   return await pgp.encrypt({
     message: await pgp.createMessage({ text: message }),

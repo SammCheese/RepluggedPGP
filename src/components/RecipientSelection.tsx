@@ -1,5 +1,6 @@
 import { PublicKey } from "openpgp";
 import { common, components } from "replugged";
+import { savedPubKeyType } from "../repluggedpgp";
 import { PGPSettings, getKey } from "../utils";
 
 const { React } = common;
@@ -10,17 +11,17 @@ let modalKey: any;
 
 interface PubKey {
   keyObject: PublicKey;
-  publicKey: string;
+  savedKeyObject: savedPubKeyType;
 }
 
-function RecepientSelection(props: any) {
-  let [recepients, setRecepients] = React.useState<string[]>([]);
-  let [savedRecepients, setSavedRecepients] = React.useState<PubKey[]>([]);
+function RecipientSelection(props: any) {
+  let [recipients, setRecipients] = React.useState<string[]>([]);
+  let [savedRecipients, setSavedRecipients] = React.useState<PubKey[]>([]);
   let [isLoading, setIsLoading] = React.useState(true);
 
   const handleConfirm = () => {
     closeModal(modalKey);
-    props.onConfirm(recepients);
+    props.onConfirm(recipients);
   };
 
   onkeydown = (e) => {
@@ -31,13 +32,13 @@ function RecepientSelection(props: any) {
     async function convertKeys() {
       const keys = PGPSettings.get("savedPubKeys", []);
 
-      const recepients = await Promise.all(
+      const recipients = await Promise.all(
         keys.map(async (res) => {
-          const keyObject = await getKey(res);
-          return { keyObject, publicKey: res };
+          const keyObject = await getKey(res.publicKey);
+          return { keyObject, savedKeyObject: res };
         }),
       );
-      setSavedRecepients(recepients);
+      setSavedRecipients(recipients);
     }
 
     convertKeys().then(() => setIsLoading(false));
@@ -51,19 +52,19 @@ function RecepientSelection(props: any) {
       <Modal.ModalContent>
         {!isLoading && (
           <>
-            {savedRecepients[0] ? (
+            {savedRecipients[0] ? (
               <>
-                {savedRecepients.map((key) => (
+                {savedRecipients.map((key) => (
                   <CheckboxItem
                     key={key.keyObject.getKeyID().toHex()}
                     onChange={() => {
-                      setRecepients(
-                        recepients.includes(key.publicKey)
-                          ? recepients.filter((elem) => elem !== key.publicKey)
-                          : recepients.concat(key.publicKey),
+                      setRecipients(
+                        recipients.includes(key.savedKeyObject.publicKey)
+                          ? recipients.filter((elem) => elem !== key.savedKeyObject.publicKey)
+                          : recipients.concat(key.savedKeyObject.publicKey),
                       );
                     }}
-                    value={recepients.includes(key.publicKey)}>
+                    value={recipients.includes(key.savedKeyObject.publicKey)}>
                     {`${key.keyObject.users[0].userID?.userID}` ?? "Unknown User"}
                   </CheckboxItem>
                 ))}
@@ -81,12 +82,12 @@ function RecepientSelection(props: any) {
   );
 }
 
-export function buildRecepientSelection(): Promise<string[]> {
+export function buildRecipientSelection(): Promise<string[]> {
   return new Promise((resolve) => {
     try {
       modalKey = openModal((props: any) => (
         <ErrorBoundary>
-          <RecepientSelection {...props} onConfirm={resolve} />
+          <RecipientSelection {...props} onConfirm={resolve} />
         </ErrorBoundary>
       ));
     } catch (e) {}
