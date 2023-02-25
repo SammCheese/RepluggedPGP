@@ -1,5 +1,20 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { VerificationResult } from "openpgp";
+import { types } from "replugged";
+
+interface RPGPWindow {
+  PGPToggleButton: JSX.Element;
+  popoverIcon: () => JSX.Element;
+  receiver: (message: DiscordMessage) => Promise<void>;
+  parseMessageFileContent: (url: string) => Promise<string>;
+  buildPopover: (fn: types.AnyFunction, channel: object, message: DiscordMessage) => unknown;
+}
+
+declare global {
+  interface Window {
+    RPGP: RPGPWindow;
+  }
+}
 
 interface savedPubKeyType {
   publicKey: string;

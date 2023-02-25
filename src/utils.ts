@@ -20,6 +20,7 @@ export let PGPSettings: settings.SettingsManager<
     encryptionActive: boolean;
     signingActive: boolean;
     asFile: boolean;
+    onlyOnce: boolean;
   },
   never
 >;
@@ -30,9 +31,18 @@ export async function initSettings(): Promise<void> {
     encryptionActive: false,
     signingActive: false,
     asFile: false,
+    onlyOnce: false,
   });
 
   await tryMigrateSettings();
+}
+
+// eslint-disable-next-line @typescript-eslint/require-await
+export async function resetSettings(): Promise<void> {
+  PGPSettings.set("asFile", false);
+  PGPSettings.set("encryptionActive", false);
+  PGPSettings.set("signingActive", false);
+  PGPSettings.set("onlyOnce", false);
 }
 
 // eslint-disable-next-line @typescript-eslint/require-await
@@ -135,7 +145,7 @@ export async function decryptMessage(message: string): Promise<decryptMessageTyp
 }
 
 export async function parseMessageFileContent(url: string): Promise<string> {
-  if (!url.endsWith(".txt") || !url.endsWith(".asc")) return "";
+  if (!url.endsWith(".txt") && !url.endsWith(".asc")) return "";
   return await new Promise(async (resolve) => {
     await fetch(url)
       .then((res) => resolve(res.text()))

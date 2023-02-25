@@ -8,6 +8,7 @@ import {
   initSettings,
   parseMessageFileContent,
   pgpFormat,
+  resetSettings,
   sendAsFile,
   signMessage,
   verifyMessage,
@@ -17,7 +18,7 @@ import { popoverIcon } from "./assets/PopoverIcon";
 import { PGPToggleButton } from "./assets/ToggleButton";
 
 import { PGPCONSTS } from "./constants";
-import { DiscordMessage } from "./repluggedpgp";
+import { DiscordMessage, RPGPWindow } from "./repluggedpgp";
 import { buildAddKeyModal } from "./components/AddKey";
 import { buildPGPResult } from "./components/PGPResult";
 import { del } from "idb-keyval";
@@ -32,14 +33,13 @@ export async function start(): Promise<void> {
   await initSettings();
   await injectSendMessage();
 
-  // @ts-expect-error adding to window
   window.RPGP = {
     PGPToggleButton,
     popoverIcon,
     receiver,
     parseMessageFileContent,
     buildPopover,
-  };
+  } as RPGPWindow;
 }
 
 // Used for Decryption
@@ -59,6 +59,7 @@ async function receiver(message: DiscordMessage): Promise<void> {
     }
     buildPGPResult({ pgpresult: result });
   }
+
   if (tempContent.match(PGPCONSTS.PGP_SIGN_HEADER)) {
     const pubKeys = PGPSettings.get("savedPubKeys", []);
 
@@ -67,7 +68,6 @@ async function receiver(message: DiscordMessage): Promise<void> {
     for (let i = 0; i < pubKeys.length; i++) {
       try {
         const { verified, keyID } = await verifyMessage(tempContent, pubKeys[i].publicKey);
-        console.log(await verified);
         if (await verified) {
           const keyUser = await getKeyUserInfo(pubKeys[i].publicKey);
           sigVerification = `Successfully validated Message from ${keyUser?.userID}\n(${keyID
@@ -77,10 +77,11 @@ async function receiver(message: DiscordMessage): Promise<void> {
         }
       } catch {}
     }
+    console.log(tempContent);
 
     message.content = sigVerification.includes("Successfully")
-      ? message.content.replace(
-          /^`{3}\n{1,}(-----BEGIN PGP SIGNED MESSAGE-----)\n(.*Hash[^\r\n]*[\r\n]+)([\s\S]*?)(-----BEGIN PGP SIGNATURE-----[\s\S]*?-----END PGP SIGNATURE-----)(\n{1,})`{3}/gms,
+      ? tempContent.replace(
+          /(?:`{3}\n?)?(-----BEGIN PGP SIGNED MESSAGE-----)\n(.*Hash[^\r\n]*[\r\n]+)([\s\S]*?)(-----BEGIN PGP SIGNATURE-----[\s\S]*?-----END PGP SIGNATURE-----)(\n\n?`{3})?/gms,
           `$3\`\`\`\n${sigVerification}\n\`\`\``,
         )
       : (message.content += `\`\`\`\n${sigVerification}\n\`\`\``);
@@ -96,7 +97,7 @@ async function receiver(message: DiscordMessage): Promise<void> {
 // eslint-disable-next-line @typescript-eslint/require-await
 async function injectSendMessage(): Promise<void> {
   injector.instead(common.messages, "sendMessage", async (args, fn) => {
-    const { signingActive, encryptionActive, asFile } = PGPSettings.all();
+    const { signingActive, encryptionActive, asFile, onlyOnce } = PGPSettings.all();
 
     if (encryptionActive) args[1].content = await encryptMessage(args[1].content);
 
@@ -112,6 +113,9 @@ async function injectSendMessage(): Promise<void> {
     // do not format in files
     if (!asFile && (encryptionActive || signingActive))
       args[1].content = pgpFormat(args[1].content);
+
+    // Reset all if we have "only once" enabled
+    if (onlyOnce) void resetSettings();
 
     // only send as file if enabled and either signing or encryption is active
     return asFile && (signingActive || encryptionActive)
@@ -150,8 +154,7 @@ export function buildPopover(
       message,
       channel,
       onClick: () => {
-        // @ts-expect-error added to window
-        window.RPGP.receiver(message);
+        void window.RPGP.receiver(message);
       },
     });
   }

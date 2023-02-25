@@ -4,7 +4,7 @@ import { savedPubKeyType } from "../repluggedpgp";
 import { PGPSettings, getKey } from "../utils";
 
 const { React } = common;
-const { Button, Modal, Text, CheckboxItem, ErrorBoundary } = components;
+const { Button, Modal, Text, CheckboxItem, ErrorBoundary, Divider } = components;
 const { closeModal, openModal } = common.modal;
 
 let modalKey: any;
@@ -18,6 +18,7 @@ function RecipientSelection(props: any) {
   let [recipients, setRecipients] = React.useState<string[]>([]);
   let [savedRecipients, setSavedRecipients] = React.useState<PubKey[]>([]);
   let [isLoading, setIsLoading] = React.useState(true);
+  let [rememberReply, setRememberReply] = React.useState(false);
 
   const handleConfirm = () => {
     closeModal(modalKey);
@@ -68,6 +69,17 @@ function RecipientSelection(props: any) {
                     {`${key.keyObject.users[0].userID?.userID}` ?? "Unknown User"}
                   </CheckboxItem>
                 ))}
+                {/* Disabled for now */}
+                {false && (
+                  <>
+                    <Divider style={{ marginBottom: "15px", marginTop: "15px" }} />
+                    <CheckboxItem
+                      value={rememberReply}
+                      onChange={() => setRememberReply(!rememberReply)}>
+                      Always use this key for this user?
+                    </CheckboxItem>
+                  </>
+                )}
               </>
             ) : (
               <Text>Looks like you dont have any Public Keys yet, try adding some in Settings</Text>

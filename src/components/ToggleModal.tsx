@@ -4,7 +4,7 @@ import { get } from "idb-keyval";
 import { buildKeyModal } from "./KeyGenerator";
 
 const { React } = common;
-const { Switch, Modal, Text, Flex, Divider, Button } = components;
+const { Modal, Text, Button, CheckboxItem } = components;
 const { openModal } = common.modal;
 
 function ToggleModal(props: any) {
@@ -12,6 +12,7 @@ function ToggleModal(props: any) {
   let [encryption, setEncryption] = React.useState(PGPSettings.get("encryptionActive", false));
   let [asFile, setAsFile] = React.useState(PGPSettings.get("asFile", false));
   let [hasKeyPair, setHasKeyPair] = React.useState(false);
+  let [onlyOnce, setOnlyOnce] = React.useState(PGPSettings.get("onlyOnce", false));
 
   React.useEffect(() => {
     async function fetchPublicKey() {
@@ -28,47 +29,33 @@ function ToggleModal(props: any) {
       <Modal.ModalContent>
         {hasKeyPair && (
           <>
-            <Flex style={{ marginTop: "15px" }}>
-              <Switch
-                style={{ marginBottom: "15px" }}
-                checked={signing}
-                onChange={(e) => {
-                  setSigning(e);
-                  PGPSettings.set("signingActive", e);
-                }}
-              />
-              <Text.Eyebrow style={{ left: "20px", top: "4px", position: "relative" }}>
-                Enable PGP Signing
-              </Text.Eyebrow>
-            </Flex>
-            <Divider style={{ marginTop: "10px", marginBottom: "10px" }} />
-            <Flex>
-              <Switch
-                style={{ marginTop: "15px", marginBottom: "15px" }}
-                checked={encryption}
-                onChange={(e) => {
-                  setEncryption(e);
-                  PGPSettings.set("encryptionActive", e);
-                }}
-              />
-              <Text.Eyebrow style={{ left: "20px", top: "4px", position: "relative" }}>
-                Enable PGP Encryption
-              </Text.Eyebrow>
-            </Flex>
-            <Divider style={{ marginTop: "10px", marginBottom: "10px" }} />
-            <Flex>
-              <Switch
-                style={{ marginTop: "15px", marginBottom: "15px" }}
-                checked={asFile}
-                onChange={(e) => {
-                  setAsFile(e);
-                  PGPSettings.set("asFile", e);
-                }}
-              />
-              <Text.Eyebrow style={{ left: "20px", top: "4px", position: "relative" }}>
-                Always send as File if possible
-              </Text.Eyebrow>
-            </Flex>
+            <CheckboxItem
+              style={{ marginTop: "15px" }}
+              value={signing}
+              onChange={() => {
+                setSigning(!signing);
+                PGPSettings.set("signingActive", !signing);
+              }}>
+              Enable PGP Signing
+            </CheckboxItem>
+            <CheckboxItem
+              style={{ marginTop: "10px", marginBottom: "10px" }}
+              value={encryption}
+              onChange={() => {
+                setEncryption(!encryption);
+                PGPSettings.set("encryptionActive", !encryption);
+              }}>
+              Enable PGP Encryption
+            </CheckboxItem>
+            <CheckboxItem
+              style={{ marginBottom: "15px" }}
+              value={asFile}
+              onChange={() => {
+                setAsFile(!asFile);
+                PGPSettings.set("asFile", !asFile);
+              }}>
+              Always Send as File
+            </CheckboxItem>
           </>
         )}
         {!hasKeyPair && (
@@ -79,6 +66,16 @@ function ToggleModal(props: any) {
           </Button>
         )}
       </Modal.ModalContent>
+      <Modal.ModalFooter>
+        <CheckboxItem
+          value={onlyOnce}
+          onChange={() => {
+            setOnlyOnce(!onlyOnce);
+            PGPSettings.set("onlyOnce", !onlyOnce);
+          }}>
+          One Time Only
+        </CheckboxItem>
+      </Modal.ModalFooter>
     </Modal.ModalRoot>
   );
 }
