@@ -1,6 +1,5 @@
 import { common, components } from "replugged";
 
-const { React } = common;
 const { Button, Modal, Text } = components;
 const { closeModal, openModal } = common.modal;
 

@@ -1,6 +1,6 @@
 import { common, components } from "replugged";
 import { set } from "idb-keyval";
-import { pgpFormat } from "../utils";
+import { PGPSettings, pgpFormat } from "../utils";
 
 const { Button, Modal, Text, Divider } = components;
 const { closeModal, openModal } = common.modal;
@@ -38,6 +38,13 @@ function KeyResult(props: any) {
               privateKey: props.privateKey,
               revocationCert: props.revocationCertificate,
             });
+            // Add newly generated key to the keyring
+            const savedArr = PGPSettings.get("savedPubKeys", []);
+            PGPSettings.set("savedPubKeys", [
+              ...savedArr,
+              { publicKey: props.publicKey, userID: "" },
+            ]);
+
             closeModal(modalKey);
           }}>
           Save
