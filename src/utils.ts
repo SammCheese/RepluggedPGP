@@ -39,12 +39,11 @@ export async function initSettings(): Promise<void> {
 }
 
 export async function tryAddSelfPubkey(): Promise<void> {
-  const { publicKey } = await get("selfKeys");
+  const selfKeys = await get("selfKeys");
   const savedPubKeys = PGPSettings.get("savedPubKeys", []);
-  console.log("fired");
-  if (!savedPubKeys || savedPubKeys.some((elem) => elem.publicKey.includes(publicKey))) return;
-  console.log("Added own Public Key to keychain");
-  PGPSettings.set("savedPubKeys", [...savedPubKeys, { publicKey, userID: "" }]);
+  if (!selfKeys || savedPubKeys?.some((elem) => elem.publicKey.includes(selfKeys.publicKey)))
+    return;
+  PGPSettings.set("savedPubKeys", [...savedPubKeys, { publicKey: selfKeys.publicKey, userID: "" }]);
 }
 
 // eslint-disable-next-line @typescript-eslint/require-await
