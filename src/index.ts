@@ -49,7 +49,7 @@ async function receiver(message: DiscordMessage): Promise<void> {
   if (message?.attachments![0]?.filename)
     tempContent = await parseMessageFileContent(message?.attachments[0].url);
 
-  if (tempContent.match(PGPCONSTS.PGP_MESSAGE_HEADER)) {
+  if (tempContent.includes(PGPCONSTS.PGP_MESSAGE_HEADER)) {
     let result;
     try {
       const decrypted = await decryptMessage(tempContent);
@@ -60,7 +60,7 @@ async function receiver(message: DiscordMessage): Promise<void> {
     buildPGPResult({ pgpresult: result });
   }
 
-  if (tempContent.match(PGPCONSTS.PGP_SIGN_HEADER)) {
+  if (tempContent.includes(PGPCONSTS.PGP_SIGN_HEADER)) {
     const pubKeys = PGPSettings.get("savedPubKeys", []);
 
     let sigVerification = "Failed to validate Message";
@@ -77,16 +77,13 @@ async function receiver(message: DiscordMessage): Promise<void> {
         }
       } catch {}
     }
-    console.log(tempContent);
 
     message.content = sigVerification.includes("Successfully")
-      ? tempContent.replace(
-          /(?:`{3}\n?)?(-----BEGIN PGP SIGNED MESSAGE-----)\n(.*Hash[^\r\n]*[\r\n]+)([\s\S]*?)(-----BEGIN PGP SIGNATURE-----[\s\S]*?-----END PGP SIGNATURE-----)(\n\n?`{3})?/gms,
-          `$3\`\`\`\n${sigVerification}\n\`\`\``,
-        )
+      ? tempContent.replace(PGPCONSTS.PGP_SIGNED_REGEX, `$3\`\`\`\n${sigVerification}\n\`\`\``)
       : (message.content += `\`\`\`\n${sigVerification}\n\`\`\``);
   }
-  if (tempContent.match(PGPCONSTS.PGP_PUBLIC_KEY_HEADER)) {
+
+  if (tempContent.includes(PGPCONSTS.PGP_PUBLIC_KEY_HEADER)) {
     void buildAddKeyModal({
       keyInfo: await getKey(tempContent),
       pubKey: tempContent,

@@ -8,4 +8,6 @@ export const PGPCONSTS = {
   PGP_PUBLIC_KEY_FOOTER: "\n-----END PGP PUBLIC KEY BLOCK-----",
   PGP_SIGN_HEADER: "-----BEGIN PGP SIGNED MESSAGE-----\n",
   PGP_SIGNED_FOOTER: "\n-----END PGP SIGNATURE-----",
+  PGP_SIGNED_REGEX:
+    /(?:`{3}\n?)?(-----BEGIN PGP SIGNED MESSAGE-----)\n(.*Hash[^\r\n]*[\r\n]+)([\s\S]*?)(-----BEGIN PGP SIGNATURE-----[\s\S]*?-----END PGP SIGNATURE-----)(\n\n?`{3})?/gms,
 };
