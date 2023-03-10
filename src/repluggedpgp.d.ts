@@ -42,6 +42,7 @@ interface addFileType {
 interface decryptMessageType {
   decrypted: string;
   signatures: VerificationResult[];
+  match?: false | PublicKey;
 }
 
 interface Attachment {
@@ -60,4 +61,13 @@ interface DiscordMessage {
   content: string;
   embeds: DiscordEmbed[];
   attachments?: Attachment[];
+}
+
+interface Messages {
+  sendMessage: (
+    channelId: string,
+    message: OutgoingMessage,
+    promise?: boolean,
+    options?: OutgoingMessageOptions,
+  ) => void;
 }

@@ -1,6 +1,6 @@
 {
   "name": "repluggedpgp",
-  "version": "1.3.3",
+  "version": "1.4.0",
   "description": "Encrypt, Sign and Decrypt messages with the power of GPG",
   "engines": {
     "node": ">=14.0.0"
@@ -32,7 +32,7 @@
     "eslint-plugin-react": "^7.31.10",
     "openpgp": "^5.5.0",
     "prettier": "^2.8.1",
-    "replugged": "4.0.0-beta0.28",
+    "replugged": "4.0.0-rc.3",
     "typescript": "^4.8.4"
   },
   "dependencies": {

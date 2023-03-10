@@ -1,10 +1,9 @@
-import { Injector, common, types } from "replugged";
+import { Injector, common, types, webpack } from "replugged";
 import {
   PGPSettings,
   decryptMessage,
   encryptMessage,
   getKey,
-  getKeyUserInfo,
   initSettings,
   parseMessageFileContent,
   pgpFormat,
@@ -18,9 +17,8 @@ import { popoverIcon } from "./assets/PopoverIcon";
 import { PGPToggleButton } from "./assets/ToggleButton";
 
 import { PGPCONSTS } from "./constants";
-import { DiscordMessage, RPGPWindow } from "./repluggedpgp";
+import { DiscordMessage, Messages, RPGPWindow } from "./repluggedpgp";
 import { buildAddKeyModal } from "./components/AddKey";
-import { buildPGPResult } from "./components/PGPResult";
 import { del } from "idb-keyval";
 
 const injector = new Injector();
@@ -32,6 +30,7 @@ export async function start(): Promise<void> {
   // Initialize Settings
   await initSettings();
   await injectSendMessage();
+  await resetSettings();
 
   window.RPGP = {
     PGPToggleButton,
@@ -50,36 +49,45 @@ async function receiver(message: DiscordMessage): Promise<void> {
     tempContent = await parseMessageFileContent(message?.attachments[0].url);
 
   if (tempContent.includes(PGPCONSTS.PGP_MESSAGE_HEADER)) {
-    let result;
+    //let totalResult = "Wrong Password or no secret key. Was this message meant for you?";
+    let signature;
+
     try {
-      const decrypted = await decryptMessage(tempContent);
-      result = decrypted.decrypted;
-    } catch {
-      result = "Wrong Password or no Secret Key!";
+      let result = await decryptMessage(tempContent);
+
+      // If its not signed, skip all additional steps and immediately set the content
+      if (!result?.signatures[0]) {
+        message.content =
+          result?.decrypted ?? "Wrong Password or no secret key. Was this message meant for you?";
+        return;
+      }
+
+      signature = result?.match;
+
+      // No signature, it failed to verify
+      if (!signature) {
+        message.content = `${
+          result?.decrypted ?? "Wrong Password or no secret key. Was this message meant for you?"
+        }\n\`\`\`\nFailed to verify Message\n\`\`\``;
+        return;
+      }
+
+      const verifiedUser = result?.match.users[0].userID.userID;
+      const fingerprint = result?.match?.keyPacket?.keyID?.toHex()?.toUpperCase();
+      message.content = `${result.decrypted}\n\`\`\`\nSuccessfully verified message from ${verifiedUser} (${fingerprint})\n\`\`\``;
+    } catch (error) {
+      console.error(error);
+      message.content = `Failed to decrypt message: ${error}`;
     }
-    buildPGPResult({ pgpresult: result });
   }
 
   if (tempContent.includes(PGPCONSTS.PGP_SIGN_HEADER)) {
-    const pubKeys = PGPSettings.get("savedPubKeys", []);
-
-    let sigVerification = "Failed to validate Message";
-
-    for (let i = 0; i < pubKeys.length; i++) {
-      try {
-        const { verified, keyID } = await verifyMessage(tempContent, pubKeys[i].publicKey);
-        if (await verified) {
-          const keyUser = await getKeyUserInfo(pubKeys[i].publicKey);
-          sigVerification = `Successfully validated Message from ${keyUser?.userID}\n(${keyID
-            .toHex()
-            .toUpperCase()})`;
-          break;
-        }
-      } catch {}
-    }
+    let sigVerification = await verifyMessage(tempContent);
 
     message.content = sigVerification.includes("Successfully")
-      ? tempContent.replace(PGPCONSTS.PGP_SIGNED_REGEX, `$3\`\`\`\n${sigVerification}\n\`\`\``)
+      ? tempContent
+          .replace(PGPCONSTS.PGP_SIGNED_REGEX, `$3\`\`\`\n${sigVerification}\n\`\`\``)
+          .replaceAll("- -", "-")
       : (message.content += `\`\`\`\n${sigVerification}\n\`\`\``);
   }
 
@@ -91,14 +99,21 @@ async function receiver(message: DiscordMessage): Promise<void> {
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/require-await
 async function injectSendMessage(): Promise<void> {
-  injector.instead(common.messages, "sendMessage", async (args, fn) => {
+  const sendMessageModule = await webpack.waitForModule<types.RawModule & Messages>(
+    webpack.filters.byProps("sendMessage", "editMessage", "deleteMessage"),
+  );
+
+  if (!sendMessageModule) return;
+
+  injector.instead(sendMessageModule, "sendMessage", async (args, fn) => {
     const { signingActive, encryptionActive, asFile, onlyOnce } = PGPSettings.all();
 
-    if (encryptionActive) args[1].content = await encryptMessage(args[1].content);
+    // We sign the
+    if (encryptionActive) args[1].content = await encryptMessage(args[1].content, signingActive);
 
-    if (signingActive) args[1].content = await signMessage(args[1].content);
+    // Sign Message normally if no encryption active
+    if (signingActive && !encryptionActive) args[1].content = await signMessage(args[1].content);
 
     // premiumType, 0 - No nitro, 1 - Nitro Classic, 2 - Nitro, 3 - Nitro Basic
     const isNitro = common.users.getCurrentUser().premiumType === 2;
