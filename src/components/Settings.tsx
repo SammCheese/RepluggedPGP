@@ -14,16 +14,28 @@ export function Settings() {
   let [privKey, setPrivKey] = React.useState("");
   let [pubKey, setPubKey] = React.useState("");
 
+  const PKeyFormatting =
+    /(?<=-----BEGIN PGP PUBLIC KEY BLOCK-----\n)[\s\S]*?(?=\n-----END PGP PUBLIC KEY BLOCK-----)/gm;
+
   React.useEffect(() => {
     async function fetchPublicKey() {
       const result = await get("selfKeys");
-      setOwnPublicKey(result.publicKey);
+      // Making the PGP block look like a block instead of a huge string
+      const match = result.publicKey.match(PKeyFormatting)[0];
+      const keyContent = match.replace(/(?<=\S)\s+(?=\S)/g, "\n");
+      setOwnPublicKey(result.publicKey.replace(match, keyContent));
     }
     fetchPublicKey();
   });
 
   function handleViewPublicKey() {
     setShowPublicKey(!showPublicKey);
+    setShowImportOwn(false);
+  }
+
+  function handleShowImport() {
+    setShowImportOwn(!showImportOwn);
+    setShowPublicKey(false);
   }
 
   return (
@@ -64,7 +76,7 @@ export function Settings() {
         <Button onClick={handleViewPublicKey} look={Button.Looks.LINK}>
           View Public Key
         </Button>
-        <Button onClick={() => setShowImportOwn(!showImportOwn)} look={Button.Looks.LINK}>
+        <Button onClick={handleShowImport} look={Button.Looks.LINK}>
           Import your own Keys
         </Button>
       </Flex>

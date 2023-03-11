@@ -49,7 +49,6 @@ async function receiver(message: DiscordMessage): Promise<void> {
     tempContent = await parseMessageFileContent(message?.attachments[0].url);
 
   if (tempContent.includes(PGPCONSTS.PGP_MESSAGE_HEADER)) {
-    //let totalResult = "Wrong Password or no secret key. Was this message meant for you?";
     let signature;
 
     try {
