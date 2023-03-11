@@ -30,6 +30,7 @@ export async function start(): Promise<void> {
   // Initialize Settings
   await initSettings();
   await injectSendMessage();
+  await injectPopover();
   await resetSettings();
 
   window.RPGP = {
@@ -37,7 +38,6 @@ export async function start(): Promise<void> {
     popoverIcon,
     receiver,
     parseMessageFileContent,
-    buildPopover,
   } as RPGPWindow;
 }
 
@@ -135,40 +135,36 @@ async function injectSendMessage(): Promise<void> {
   });
 }
 
-export function stop(): void {
-  injector.uninjectAll();
+// eslint-disable-next-line @typescript-eslint/require-await
+async function injectPopover(): Promise<void> {
+  injector.utils.addPopoverButton((message: DiscordMessage) => {
+    const actionType = {
+      "Add Key": /BEGIN PGP PUBLIC KEY BLOCK/,
+      "Verify Signature": /BEGIN PGP SIGNED MESSAGE/,
+      "Decrypt PGP Message": /BEGIN PGP MESSAGE/,
+    };
+
+    const contentRegexMatch = Object.entries(actionType).find(([_, regex]) =>
+      regex.test(message?.content),
+    );
+
+    const hasAttachment =
+      message?.attachments && message?.attachments[0]?.filename.endsWith(".txt");
+
+    if (!contentRegexMatch && !hasAttachment) return null;
+
+    return {
+      label: contentRegexMatch ? contentRegexMatch[0] : "PGP Actions",
+      icon: popoverIcon,
+      onClick: () => {
+        void window.RPGP.receiver(message);
+      },
+    };
+  });
 }
 
 export { Settings } from "./components/Settings";
 
-export function buildPopover(
-  fn: types.AnyFunction,
-  channel: object,
-  message: DiscordMessage,
-): unknown | null {
-  const actionType = {
-    "Add Key": /BEGIN PGP PUBLIC KEY BLOCK/,
-    "Verify Signature": /BEGIN PGP SIGNED MESSAGE/,
-    "Decrypt PGP Message": /BEGIN PGP MESSAGE/,
-  };
-
-  const contentRegexMatch = Object.entries(actionType).find(([_, regex]) =>
-    regex.test(message?.content),
-  );
-
-  const hasAttachment = message?.attachments && message?.attachments[0]?.filename.endsWith(".txt");
-
-  if (contentRegexMatch || hasAttachment) {
-    return fn({
-      label: contentRegexMatch ? contentRegexMatch[0] : "PGP Actions",
-      icon: popoverIcon,
-      message,
-      channel,
-      onClick: () => {
-        void window.RPGP.receiver(message);
-      },
-    });
-  }
-
-  return null;
+export function stop(): void {
+  injector.uninjectAll();
 }

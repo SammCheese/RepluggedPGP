@@ -133,7 +133,7 @@ export async function verifyMessage(ctMessage: string): Promise<string> {
       if (await verified) {
         console.log("Success", verified, keyID);
         const keyUser = await getKeyUserInfo(pubKeys[i].publicKey);
-        sigVerification = `Successfully Validated message from ${keyUser?.userID}\n(${keyID
+        sigVerification = `Successfully Validated message from ${keyUser?.userID} (${keyID
           .toHex()
           .toString()
           .toUpperCase()})`;
