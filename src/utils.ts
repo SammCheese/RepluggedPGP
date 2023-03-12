@@ -51,7 +51,6 @@ export async function resetSettings(): Promise<void> {
   PGPSettings.set("asFile", false);
   PGPSettings.set("encryptionActive", false);
   PGPSettings.set("signingActive", false);
-  PGPSettings.set("onlyOnce", false);
 }
 
 // eslint-disable-next-line @typescript-eslint/require-await
