@@ -1,4 +1,4 @@
-import { Injector, common, types, webpack } from "replugged";
+import { Injector, common } from "replugged";
 import {
   PGPSettings,
   decryptMessage,
@@ -17,7 +17,7 @@ import { popoverIcon } from "./assets/PopoverIcon";
 import { PGPToggleButton } from "./assets/ToggleButton";
 
 import { PGPCONSTS } from "./constants";
-import { DiscordMessage, Messages, RPGPWindow } from "./repluggedpgp";
+import { DiscordMessage, RPGPWindow } from "./repluggedpgp";
 import { buildAddKeyModal } from "./components/AddKey";
 import { del } from "idb-keyval";
 
@@ -98,20 +98,13 @@ async function receiver(message: DiscordMessage): Promise<void> {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/require-await
 async function injectSendMessage(): Promise<void> {
-  const sendMessageModule = await webpack.waitForModule<types.RawModule & Messages>(
-    webpack.filters.byProps("sendMessage", "editMessage", "deleteMessage"),
-  );
-
-  if (!sendMessageModule) return;
-
-  injector.instead(sendMessageModule, "sendMessage", async (args, fn) => {
+  injector.instead(common.messages, "sendMessage", async (args, fn) => {
     const { signingActive, encryptionActive, asFile, onlyOnce } = PGPSettings.all();
 
-    // We sign the
     if (encryptionActive) args[1].content = await encryptMessage(args[1].content, signingActive);
 
-    // Sign Message normally if no encryption active
     if (signingActive && !encryptionActive) args[1].content = await signMessage(args[1].content);
 
     // premiumType, 0 - No nitro, 1 - Nitro Classic, 2 - Nitro, 3 - Nitro Basic

@@ -33,6 +33,7 @@ function KeyGenerateModal(props: any) {
       </Modal.ModalContent>
       <Modal.ModalFooter>
         <Button
+          disabled={!name || !email}
           onClick={async () => {
             const generatedKey = await pgp.generateKey({
               userIDs: { name, email, comment },

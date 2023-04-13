@@ -1,5 +1,6 @@
 import { common, components } from "replugged";
 import { buildAddKeyModal } from "./AddKey";
+import { buildKeyManager } from "./KeyManager";
 import { PGPSettings, getKey, pgpFormat } from "../utils";
 import { get, set } from "idb-keyval";
 
@@ -78,6 +79,9 @@ export function Settings() {
         </Button>
         <Button onClick={handleShowImport} look={Button.Looks.LINK}>
           Import your own Keys
+        </Button>
+        <Button onClick={() => buildKeyManager()} look={Button.Looks.LINK}>
+          Manage Keys
         </Button>
       </Flex>
       {showPublicKey && (
