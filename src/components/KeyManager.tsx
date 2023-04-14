@@ -14,6 +14,19 @@ interface KeyCardType {
   userID: string;
 }
 
+/*function KeyDetails(props: any) {
+  return (
+    <Modal.ModalRoot>
+      <Modal.ModalHeader>
+        <Text.H1>Key Details</Text.H1>
+      </Modal.ModalHeader>
+      <Modal.ModalContent>
+        <Text> Balls</Text>
+      </Modal.ModalContent>
+    </Modal.ModalRoot>
+  );
+}*/
+
 function KeyCard(props: KeyCardType) {
   const [userID, setUserData] = React.useState<UserIDPacket | null>();
 
@@ -34,12 +47,12 @@ function KeyCard(props: KeyCardType) {
             marginLeft: "auto",
             flexDirection: "row",
           }}>
-          <Button
+          {/*<Button
             style={{ marginRight: "7px" }}
             look={Button.Looks.LINK}
-            onClick={() => console.log(props, userID)}>
-            Edit
-          </Button>
+            onClick={() => openModal((props) => <KeyDetails {...props} />)}>
+            View
+        </Button>*/}
           <Button
             onClick={() => {
               const keys = PGPSettings.get("savedPubKeys", []);
