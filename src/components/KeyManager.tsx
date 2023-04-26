@@ -1,6 +1,7 @@
 import { common, components } from "replugged";
-import { PGPSettings, getKeyUserInfo } from "../utils";
+import { PGPSettings, getKey, getKeyUserInfo } from "../utils";
 import { UserIDPacket } from "openpgp";
+import { buildKeyViewer } from "./KeyViewer";
 
 const { React } = common;
 const { closeModal, openModal } = common.modal;
@@ -13,19 +14,6 @@ interface KeyCardType {
   publicKey: string;
   userID: string;
 }
-
-/*function KeyDetails(props: any) {
-  return (
-    <Modal.ModalRoot>
-      <Modal.ModalHeader>
-        <Text.H1>Key Details</Text.H1>
-      </Modal.ModalHeader>
-      <Modal.ModalContent>
-        <Text> Balls</Text>
-      </Modal.ModalContent>
-    </Modal.ModalRoot>
-  );
-}*/
 
 function KeyCard(props: KeyCardType) {
   const [userID, setUserData] = React.useState<UserIDPacket | null>();
@@ -47,12 +35,17 @@ function KeyCard(props: KeyCardType) {
             marginLeft: "auto",
             flexDirection: "row",
           }}>
-          {/*<Button
+          <Button
             style={{ marginRight: "7px" }}
             look={Button.Looks.LINK}
-            onClick={() => openModal((props) => <KeyDetails {...props} />)}>
+            onClick={async () =>
+              buildKeyViewer({
+                keyInfo: await getKey(props.publicKey),
+                pubKey: props.publicKey,
+              })
+            }>
             View
-        </Button>*/}
+          </Button>
           <Button
             onClick={() => {
               const keys = PGPSettings.get("savedPubKeys", []);

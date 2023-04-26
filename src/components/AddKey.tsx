@@ -29,7 +29,7 @@ function AddKey(props: any) {
         </Text.Eyebrow>
         <Divider style={{ marginBottom: "15px", marginTop: "15px" }} />
         <Text style={{ marginBottom: "5px" }}>User ID: {info.user.userID}</Text>
-        <Text style={{ marginBottom: "5px" }}>comment: {info.user.comment || "No Comment"}</Text>
+        <Text style={{ marginBottom: "5px" }}>Comment: {info.user.comment || "No Comment"}</Text>
         <Text style={{ marginBottom: "5px" }}>Created: {info?.created.toString()}</Text>
         <Divider style={{ marginBottom: "15px", marginTop: "15px" }}></Divider>
         <Text markdown={true} selectable={true}>

@@ -40,8 +40,8 @@ devDependencies:
     specifier: ^2.8.1
     version: 2.8.1
   replugged:
-    specifier: 4.2.4
-    version: 4.2.4(@codemirror/view@6.7.3)(@lezer/common@1.0.2)
+    specifier: 4.2.6
+    version: 4.2.6(@codemirror/view@6.7.3)(@lezer/common@1.0.2)
   typescript:
     specifier: ^4.8.4
     version: 4.8.4
@@ -1786,8 +1786,8 @@ packages:
     engines: {node: '>=14.16'}
     dev: true
 
-  /cacheable-request@10.2.9:
-    resolution: {integrity: sha512-CaAMr53AS1Tb9evO1BIWFnZjSr8A4pbXofpsNVWPMDZZj3ZQKHwsQG9BrTqQ4x5ZYJXz1T2b8LLtTZODxSpzbg==}
+  /cacheable-request@10.2.10:
+    resolution: {integrity: sha512-v6WB+Epm/qO4Hdlio/sfUn69r5Shgh39SsE9DSd4bIezP0mblOlObI+I0kUEM7J0JFc+I7pSeMeYaOYtX1N/VQ==}
     engines: {node: '>=14.16'}
     dependencies:
       '@types/http-cache-semantics': 4.0.1
@@ -2651,7 +2651,7 @@ packages:
       '@sindresorhus/is': 5.3.0
       '@szmarczak/http-timer': 5.0.1
       cacheable-lookup: 7.0.0
-      cacheable-request: 10.2.9
+      cacheable-request: 10.2.10
       decompress-response: 6.0.0
       form-data-encoder: 2.1.4
       get-stream: 6.0.1
@@ -3654,8 +3654,8 @@ packages:
       rc: 1.2.8
     dev: true
 
-  /replugged@4.2.4(@codemirror/view@6.7.3)(@lezer/common@1.0.2):
-    resolution: {integrity: sha512-iZ3FsdjSSN6T35dRMfAryAKi6VvLkn8kIPl+kQYupZtyr2hyMbHdR9EEwwj4WRXt1TFa/seT32y31pIFPCKZyg==}
+  /replugged@4.2.6(@codemirror/view@6.7.3)(@lezer/common@1.0.2):
+    resolution: {integrity: sha512-qMJJ/mcu5y84w2a7gRZff0iANuysH5fHqLHbaCbqn4jX4ElXAv34BgQyZGzxXOiMWmuEhZKHSI44R+mIwiWt+g==}
     engines: {node: '>=18.0.0', pnpm: '>=8.0.0'}
     hasBin: true
     dependencies:

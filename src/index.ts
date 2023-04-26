@@ -1,6 +1,7 @@
 import { Injector, common } from "replugged";
 import {
   PGPSettings,
+  calculateRecipients,
   decryptMessage,
   encryptMessage,
   getKey,
@@ -20,6 +21,8 @@ import { PGPCONSTS } from "./constants";
 import { DiscordMessage, RPGPWindow } from "./repluggedpgp";
 import { buildAddKeyModal } from "./components/AddKey";
 import { del } from "idb-keyval";
+
+const { channels, messages } = common;
 
 const injector = new Injector();
 
@@ -103,7 +106,18 @@ async function injectSendMessage(): Promise<void> {
   injector.instead(common.messages, "sendMessage", async (args, fn) => {
     const { signingActive, encryptionActive, asFile, onlyOnce } = PGPSettings.all();
 
-    if (encryptionActive) args[1].content = await encryptMessage(args[1].content, signingActive);
+    if (encryptionActive) {
+      let recipients = [];
+      const DM = channels.getChannel(args[0])?.recipients;
+      const Reply = args[3]?.messageReference;
+      // Also includes groupchats
+      if (DM) recipients = DM;
+      if (Reply?.channel_id && Reply?.message_id)
+        recipients = [messages.getMessage(Reply.channel_id, Reply.message_id).author.id];
+
+      const expectedRecipients = await calculateRecipients(recipients);
+      args[1].content = await encryptMessage(args[1].content, expectedRecipients, signingActive);
+    }
 
     if (signingActive && !encryptionActive) args[1].content = await signMessage(args[1].content);
 

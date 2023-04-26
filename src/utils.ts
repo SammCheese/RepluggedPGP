@@ -61,7 +61,16 @@ async function tryMigrateSettings(): Promise<void> {
     if (typeof element === "string") return { publicKey: element, userID: "" };
     return element;
   });
-  console.log(newSettings);
+  PGPSettings.set("savedPubKeys", newSettings);
+}
+
+// eslint-disable-next-line @typescript-eslint/require-await
+export async function associateUserWithKey(key: string, userID: string): Promise<void> {
+  const keys = PGPSettings.get("savedPubKeys", []);
+  const newSettings = keys.map((elem) => {
+    if (elem.publicKey.includes(key)) elem.userID = userID;
+    return elem;
+  });
   PGPSettings.set("savedPubKeys", newSettings);
 }
 
@@ -142,16 +151,38 @@ export async function verifyMessage(ctMessage: string): Promise<string> {
   return sigVerification;
 }
 
-export async function encryptMessage(message: string, sign?: boolean): Promise<string> {
-  const recipients = await buildRecipientSelection();
-  const publicKeys = await Promise.all(recipients.map((armoredKey) => pgp.readKey({ armoredKey })));
-
+export async function encryptMessage(
+  message: string,
+  recipients: string[],
+  sign?: boolean,
+): Promise<string> {
   return await pgp.encrypt({
     message: await pgp.createMessage({ text: message }),
-    encryptionKeys: publicKeys,
+    encryptionKeys: recipients,
     // eslint-disable-next-line no-undefined
     signingKeys: sign ? await getPrivateKey() : undefined,
   });
+}
+
+export async function calculateRecipients(expectedRecipients: string[] = []): Promise<string[]> {
+  const keys = PGPSettings.get("savedPubKeys", []);
+
+  let recipients: Array<string | undefined>;
+
+  if (expectedRecipients.length === 0) {
+    recipients = await buildRecipientSelection();
+  } else {
+    recipients = expectedRecipients.map((userID) => {
+      const key = keys.find((e) => e.userID === userID);
+      return key ? key.publicKey : "";
+    });
+
+    if (recipients.every((r) => r === "")) {
+      recipients = await buildRecipientSelection();
+    }
+  }
+
+  return await Promise.all(recipients.map((armoredKey) => pgp.readKey({ armoredKey })));
 }
 
 export async function decryptMessage(message: string): Promise<decryptMessageType | undefined> {
@@ -196,6 +227,11 @@ export async function parseMessageFileContent(url: string): Promise<string> {
       .then((res) => resolve(res.text()))
       .catch((e) => console.error(e));
   });
+}
+
+export function fetchChannelAndCompare(channel: string, userID: string): boolean {
+  const sentInChannel = channels.getChannel(channel);
+  return sentInChannel?.recipients.includes(userID);
 }
 
 export function sendAsFile(message: string): void {
