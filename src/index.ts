@@ -21,6 +21,10 @@ import { PGPCONSTS } from "./constants";
 import { DiscordMessage, RPGPWindow } from "./repluggedpgp";
 import { buildAddKeyModal } from "./components/AddKey";
 import { del } from "idb-keyval";
+import {
+  OutgoingMessage,
+  OutgoingMessageOptions,
+} from "replugged/dist/renderer/modules/common/messages";
 
 const { channels, messages } = common;
 
@@ -101,21 +105,30 @@ async function receiver(message: DiscordMessage): Promise<void> {
   }
 }
 
+function fetchRecepients(
+  args: [
+    channelId: string,
+    message: OutgoingMessage,
+    promise?: boolean | undefined,
+    options?: OutgoingMessageOptions | undefined,
+  ],
+): string[] {
+  let recipients = [];
+  const DM = channels.getChannel(args[0])?.recipients;
+  const Reply = args[3]?.messageReference;
+  if (DM) recipients = DM;
+  if (Reply?.channel_id && Reply?.message_id)
+    recipients = [messages.getMessage(Reply.channel_id, Reply.message_id).author.id];
+  return recipients;
+}
+
 // eslint-disable-next-line @typescript-eslint/require-await
 async function injectSendMessage(): Promise<void> {
   injector.instead(common.messages, "sendMessage", async (args, fn) => {
     const { signingActive, encryptionActive, asFile, onlyOnce } = PGPSettings.all();
 
     if (encryptionActive) {
-      let recipients = [];
-      const DM = channels.getChannel(args[0])?.recipients;
-      const Reply = args[3]?.messageReference;
-      // Also includes groupchats
-      if (DM) recipients = DM;
-      if (Reply?.channel_id && Reply?.message_id)
-        recipients = [messages.getMessage(Reply.channel_id, Reply.message_id).author.id];
-
-      const expectedRecipients = await calculateRecipients(recipients);
+      const expectedRecipients = await calculateRecipients(fetchRecepients(args));
       args[1].content = await encryptMessage(args[1].content, expectedRecipients, signingActive);
     }
 
