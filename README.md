@@ -2,11 +2,11 @@
 
 Encrypt or Sign your messages with GPG :D
 
-# Installation
+## Installation
 
 Just click the button below!
 
-[![Install](https://img.shields.io/badge/-Install%20for%20Replugged-blue?style=for-the-badge&logo=none)](https://replugged.dev/install?identifier=SammCheese/RepluggedPGP&source=github)
+[![Install](https://img.shields.io/badge/-Install%20for%20Replugged-blue?style=for-the-badge&logo=none)](https://replugged.dev/install?identifier=dev.sammcheese.RepluggedPGP)
 
 ## Contributing
 

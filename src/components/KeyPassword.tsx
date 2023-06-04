@@ -50,14 +50,18 @@ function PasswordField(props: any) {
         <Divider style={{ marginTop: "15px", marginBottom: "15px" }} />
         <Flex>
           <Switch
-            style={{ marginTop: "15px", marginBottom: "15px" }}
             checked={savePassword}
             onChange={(e) => {
               setSavePassword(e);
             }}
           />
           <Text.Eyebrow
-            style={{ left: "20px", top: "4px", position: "relative", marginBottom: "15px" }}>
+            style={{
+              left: "20px",
+              top: "4px",
+              position: "relative",
+              marginBottom: "15px",
+            }}>
             Remember Password for 30 Minutes
           </Text.Eyebrow>
         </Flex>

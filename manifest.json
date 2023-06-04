@@ -7,10 +7,10 @@
     "discordID": "372148345894076416",
     "github": "SammCheese"
   },
-  "version": "1.4.3",
+  "version": "1.4.4",
   "updater": {
-    "type": "github",
-    "id": "SammCheese/RepluggedPGP"
+    "type": "store",
+    "id": "dev.sammcheese.RepluggedPGP"
   },
   "license": "Unlicensed",
   "type": "replugged-plugin",
